@@ -11,10 +11,15 @@ FILESPATH = os.environ.get("FILESPATH", "/home/tulipan16372/storage_NAS/Misc/Dan
 UPDATED_EMBEDDINGS_NAME = os.environ.get("UPDATED_EMBEDDINGS_NAME", "updated_embeddings.npy")
 REDUCED_EMBEDDINGS_NAME = os.environ.get("REDUCED_EMBEDDINGS_NAME", "updated_reduced_embeddings.npy")
 UPDATED_CLUSTERS_DATAFRAME_NAME = os.environ.get("UPDATED_CLUSTERS_DATAFRAME_NAME", "updated_df_cluster.csv")
+ABSTRACTS_NAME = os.environ.get("ABSTRACTS_NAME", "abstracts.parquet")
 
-# Load Data
+# Load Embeddings Data
 current_date = datetime.now().strftime("%Y%m%d")
 embeddings_path = os.path.join(FILESPATH, f"{current_date}_{UPDATED_EMBEDDINGS_NAME}")
+
+# Check if the embeddings file exists
+if not os.path.isfile(embeddings_path):
+    raise FileNotFoundError(f"Embeddings file {embeddings_path} does not exist.")
 embeddings = np.load(embeddings_path, allow_pickle=True)
 
 print(f"Embeddings shape: {embeddings.shape}")
@@ -37,15 +42,20 @@ df_cluster = pd.DataFrame(reduced_embeddings, columns=["umap_x", "umap_y"])
 # HDBSCAN Clustering
 hdbscan_model = HDBSCAN(min_cluster_size=300, min_samples=50, metric='euclidean', cluster_selection_method='eom', prediction_data=True)
 hdbscan_model.fit(df_cluster[['umap_x', 'umap_y']])
-print('clusterer labels shape:', hdbscan_model.labels_.shape)
+print('Clusterer labels shape:', hdbscan_model.labels_.shape)
 
 # Label the clusters on df_cluster
 df_cluster['cluster'] = hdbscan_model.labels_
-print('num clusters:', df_cluster['cluster'].nunique())
+print('Number of clusters:', df_cluster['cluster'].nunique())
 
 # Load the original sentences to add to the DataFrame
 renamed_file_path = os.path.join(FILESPATH, f"{current_date}_Matt_renamed_{ABSTRACTS_NAME}")
+
+# Check if the renamed abstracts file exists
+if not os.path.isfile(renamed_file_path):
+    raise FileNotFoundError(f"Renamed abstracts file {renamed_file_path} does not exist.")
 df_abstracts = pd.read_parquet(renamed_file_path, engine='pyarrow')
+
 print("Column names in the loaded DataFrame:", df_abstracts.columns)
 
 # Ensure the column name is 'sentences'

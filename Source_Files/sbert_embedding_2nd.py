@@ -1,24 +1,3 @@
-"""
-sbert_embedding.py
-
-This script re-embeds sentences after model fine-tuning using the SentenceTransformer model.
-
-Libraries
----------
-- os: Provides a way of using operating system dependent functionality.
-- datetime: Supplies classes for manipulating dates and times.
-- numpy: A package for scientific computing with Python.
-- pandas: A data manipulation and analysis library.
-- sentence_transformers: A library for computing sentence embeddings using pretrained models and fine-tuning them.
-
-Environment Variables
-----------------------
-- FILESPATH: Path to the directory containing the data files. Default is set via environment variable.
-- ABSTRACTS_NAME: Name of the parquet file containing the cleaned text data. Default is "abstracts.parquet".
-- EMBEDDINGS_NAME: Name of the numpy file to save the updated sentence embeddings. Default is "updated_embeddings.npy".
-- STUDENT_MODEL: Name of the fine-tuned SentenceTransformer model to be used. Default is "make-multilingual-simcse-class".
-"""
-
 # Main Libraries
 import os
 from datetime import datetime
@@ -56,8 +35,15 @@ else:
 sentences = abstracts['sentences'].tolist()
 
 # Load Fine-tuned Model
-model_path = os.path.join(FILESPATH, STUDENT_MODEL)
-fine_tuned_model = SentenceTransformer(model_path)
+model_dir_path = os.path.join(FILESPATH, f"{current_date}_{STUDENT_MODEL}")
+
+# Check if the model directory exists
+if not os.path.isdir(model_dir_path):
+    raise FileNotFoundError(f"Model directory {model_dir_path} does not exist. Please check the fine-tuning step.")
+
+# Initialize the SentenceTransformer model from the directory
+fine_tuned_model = SentenceTransformer(model_dir_path)
+print(f"Model loaded from {model_dir_path}")
 
 # Embed Sentences
 embeddings = fine_tuned_model.encode(sentences, show_progress_bar=True)

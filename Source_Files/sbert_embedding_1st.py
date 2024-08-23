@@ -48,5 +48,6 @@ model = MODEL_NAME
 embedding_model = SentenceTransformer(model)
 embeddings = embedding_model.encode(abstracts_list, show_progress_bar=True)
 
+# Save embeddingsnp.save(os.path.join(FILESPATH, f"{current_date}_Matt_{EMBEDDINGS_NAME}"), embeddings)
 # Save embeddings
 np.save(os.path.join(FILESPATH, f"{current_date}_Matt_{EMBEDDINGS_NAME}"), embeddings)
